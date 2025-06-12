@@ -46,7 +46,10 @@
 
     .message-bubble {
       position: absolute;
-      max-width: 240px;
+      max-width: min(240px, 90vw); /* usa o menor entre 240px ou 90% da largura da tela */
+      box-sizing: border-box;
+      word-break: break-word;
+      overflow-wrap: break-word;
       padding: 10px 14px;
       border-radius: 18px;
       font-family: sans-serif;
