@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Dia dos Namorados 💖</title>
+  <style>
+    body {
+      margin: 0;
+      background: #111;
+      overflow: hidden;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      flex-direction: column;
+    }
+
+    h1 {
+      position: absolute;
+      top: 30px;
+      color: white;
+      font-family: sans-serif;
+      font-size: 1.8em;
+      text-align: center;
+      animation: pulse 2s infinite;
+    }
+
+    @keyframes pulse {
+      0%, 100% { transform: scale(1); }
+      50% { transform: scale(1.1); }
+    }
+
+    canvas {
+      display: block;
+    }
+    #messages-container {
+      position: fixed;
+      top: 0;
+      left: 0;
+      pointer-events: none;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+    }
+
+    .message-bubble {
+      position: absolute;
+      max-width: 240px;
+      padding: 10px 14px;
+      border-radius: 18px;
+      font-family: sans-serif;
+      font-size: 14px;
+      line-height: 1.4;
+      color: white;
+      background-color: #25D366;
+      opacity: 0;
+      transform: scale(0.8);
+      animation: popInOut 3s ease-in-out forwards;
+    }
+
+    .message-bubble.alt {
+      background-color: #3a3a3a;
+    }
+
+    @keyframes popInOut {
+      0% { opacity: 0; transform: scale(0.8); }
+      10% { opacity: 1; transform: scale(1); }
+      90% { opacity: 1; transform: scale(1); }
+      100% { opacity: 0; transform: scale(0.8); }
+    }
+
+    #footer-name {
+      position: fixed;
+      top: 90%;
+      left: 39%;
+      transform: translate(-50%, -50%);
+      color: white;
+      font-family: sans-serif;
+      font-size: 1.8em;
+      font-weight: bold;
+      animation: pulse 2s infinite;
+      user-select: none;
+      pointer-events: none;
+      z-index: 1000;
+      text-align: center;
+    }
+  </style>
+</head>
+<body>
+  <audio src="./Henrique%20e%20Juliano%20-%20VEM%20PRA%20MINHA%20VIDA%20-%20DVD%20O%20Céu%20Explica%20Tudo%20[r73ANL4ecnE_00_00_08_00_03_05_part].mp3" autoplay loop></audio>
+
+
+  <h1>Feliz Dia dos Namorados 💘</h1>
+  <canvas id="canvas"></canvas>
+  <div id="messages-container"></div>
+
+  <script>
+    const canvas = document.getElementById('canvas');
+    const ctx = canvas.getContext('2d');
+
+    let width, height;
+    function resize() {
+      width = canvas.width = window.innerWidth;
+      height = canvas.height = window.innerHeight;
+    }
+    window.addEventListener('resize', resize);
+    resize();
+
+    // --- Partículas do coração animado ---
+    const particles = [];
+    const layers = 30;       // camadas internas do coração reduzidas para performance
+    const perLayer = 80;     // partículas por camada reduzidas
+    const scale = 17;        // tamanho do coração
+
+    function heart(t) {
+      const x = 16 * Math.pow(Math.sin(t), 3);
+      const y = 13 * Math.cos(t) - 5 * Math.cos(2 * t) - 2 * Math.cos(3 * t) - Math.cos(4 * t);
+      return { x, y };
+    }
+
+    // gerar partículas em camadas concêntricas
+    for (let r = 1; r <= layers; r++) {
+      for (let i = 0; i < perLayer; i++) {
+        const t = (i / perLayer) * Math.PI * 2;
+        const point = heart(t);
+        const factor = r / layers;
+
+        particles.push({
+          x: Math.random() * width,
+          y: Math.random() * height,
+          tx: width / 2 + point.x * scale * factor,
+          ty: height / 2 - point.y * scale * factor,
+          vx: 0,
+          vy: 0
+        });
+      }
+    }
+
+    let pointer = { x: null, y: null, active: false };
+
+    canvas.addEventListener("mousemove", e => {
+      pointer.x = e.clientX;
+      pointer.y = e.clientY;
+      pointer.active = true;
+    });
+
+    canvas.addEventListener("touchmove", e => {
+      if (e.touches.length > 0) {
+        pointer.x = e.touches[0].clientX;
+        pointer.y = e.touches[0].clientY;
+        pointer.active = true;
+      }
+    });
+
+    canvas.addEventListener("mouseleave", () => pointer.active = false);
+    canvas.addEventListener("touchend", () => pointer.active = false);
+
+    // --- Emojis de coração caindo ---
+    const heartEmojis = ['❤️', '💖', '💕', '💘', '❣️', '💓', '💗'];
+    const fallingHearts = [];
+
+    function createFallingHeart() {
+      return {
+        x: Math.random() * width ,
+        y: -30,
+        speed: 1 + Math.random() * 1.5,
+        emoji: heartEmojis[Math.floor(Math.random() * heartEmojis.length)],
+        size: 15 + Math.random() * 10,
+        sway: (Math.random() - 0.5) * 0.5,
+        swayAngle: 0
+      };
+    }
+
+    // Inicializa 15 corações caindo
+    for(let i = 0; i < 50; i++) {
+      fallingHearts.push(createFallingHeart());
+    }
+
+    // --- Imagens de corações caindo ---
+
+    const heartImagesSrc = [
+     './thicyane (1).jpeg',
+      './thicyane (1).jpeg',
+      './thicyane (2).jpeg',
+      './thicyane (3).jpeg',
+      './thicyane (4).jpeg',
+      './thicyane (5).jpeg',
+      './thicyane (6).jpg',
+      './thicyane (7).jpg',
+      './thicyane (8).jpeg',
+      './thicyane (10).jpg',
+      './thicyane (11).jpg',
+      './thicyane (12).jpg',
+      './thicyane (13).jpeg',
+      './thicyane (14).jpg',
+      './thicyane (15).jpg',
+      './thicyane (16).jpg',
+      './thicyane (17).jpg',
+      './thicyane (18).jpg',
+    ];
+
+    const heartImages = [];
+    let imagesLoaded = 0;
+
+    for (let src of heartImagesSrc) {
+      const img = new Image();
+      img.src = src;
+      img.onload = () => {
+        imagesLoaded++;
+      };
+      heartImages.push(img);
+    }
+
+    const fallingImages = [];
+
+    function createFallingImage() {
+      return {
+        x: Math.random() * width,
+        y: -50,
+        speed: 1 + Math.random() * 1.5,
+        sway: (Math.random() - 0.5) * 0.3,
+        swayAngle: 0,
+        size: 50 + Math.random() * 30,
+        img: heartImages[Math.floor(Math.random() * heartImages.length)]
+      };
+    }
+
+    // Inicializa 10 imagens caindo
+    for (let i = 0; i < 17; i++) {
+      fallingImages.push(createFallingImage());
+    }
+
+    function animateFallingObjects() {
+      ctx.save();
+
+      // Emojis
+      for(let heart of fallingHearts) {
+        heart.y += heart.speed;
+        heart.swayAngle += 0.02;
+        heart.x += Math.sin(heart.swayAngle) * heart.sway;
+
+        ctx.font = `bold ${heart.size}px serif`;
+        ctx.fillText(heart.emoji, heart.x, heart.y);
+
+        if(heart.y > height + 30) {
+          Object.assign(heart, createFallingHeart());
+        }
+      }
+
+      // Imagens (só desenha quando todas carregarem)
+      if (imagesLoaded === heartImages.length) {
+        for (let obj of fallingImages) {
+          obj.y += obj.speed;
+          obj.swayAngle += 0.02;
+          obj.x += Math.sin(obj.swayAngle) * obj.sway;
+
+          ctx.drawImage(obj.img, obj.x, obj.y, obj.size, obj.size);
+
+          if (obj.y > height + obj.size) {
+            Object.assign(obj, createFallingImage());
+          }
+        }
+      }
+
+      ctx.restore();
+    }
+
+    // --- Animação principal ---
+    function animate() {
+      ctx.clearRect(0, 0, width, height);
+
+      // Primeiro desenha corações e imagens caindo atrás
+      animateFallingObjects();
+
+      // Depois desenha as partículas do coração
+      for (let p of particles) {
+        if (pointer.active) {
+          const dx = p.x - pointer.x;
+          const dy = p.y - pointer.y;
+          const dist = Math.sqrt(dx * dx + dy * dy);
+          const force = Math.max(0, 20 - dist) / 10;
+
+          if (force > 0) {
+            const angle = Math.atan2(dy, dx);
+            p.vx += Math.cos(angle) * force * 5;
+            p.vy += Math.sin(angle) * force * 5;
+          }
+        }
+
+        const ax = (p.tx - p.x) * 0.02;
+        const ay = (p.ty - p.y) * 0.02;
+        p.vx += ax;
+        p.vy += ay;
+
+        p.vx *= 0.8;
+        p.vy *= 0.8;
+
+        p.x += p.vx;
+        p.y += p.vy;
+
+        ctx.beginPath();
+        ctx.fillStyle = '#ff1744';
+        ctx.shadowColor = 'rgba(255,20,68,0.9)';
+        ctx.shadowBlur = 8;
+        ctx.arc(p.x, p.y, 2, 0, Math.PI * 2);
+        ctx.fill();
+      }
+
+      requestAnimationFrame(animate);
+    }
+
+    animate();
+
+    // --- Mensagens que aparecem aleatoriamente (exemplo) ---
+    const messages = [
+  // Com "Thicyane"
+  "Você é meu lugar favorito, Thicyane ❤️",
+  "Te amo mais do que pizza, Thicyane 🍕",
+  "Cada batida do meu coração diz: te amo, Thicyane 💓",
+  "Seu sorriso ilumina meu dia, Thicyane ☀️",
+  "Thicyane, meu coração bate mais forte por você!",
+  "Ao seu lado, tudo faz sentido, Thicyane.",
+  "Você é a razão do meu sorriso, Thicyane 😊",
+  "Meu amor por você cresce a cada dia, Thicyane 🌹",
+  "Thicyane, você é meu sonho realizado ✨",
+  "Você me completa, Thicyane ❤️‍🔥",
+
+  // Com "Amor"
+  "Amor, você é minha paz e alegria 💞",
+  "Te amo mais que chocolate e café, amor ☕🍫",
+  "Amor, minha vida ficou mais colorida com você 🌈",
+  "Só quero estar com você, amor, para sempre 💖",
+  "Com você, amor, tudo é mais bonito",
+  "Amor, você é o melhor presente que a vida me deu",
+  "Cada momento contigo é precioso, amor",
+
+  // Sem sujeito explícito
+  "Com você, até segunda-feira é feliz 🥰",
+  "Ficar junto é meu passatempo favorito 💑",
+  "Prometo te amar até o fim da Netflix 📺💕",
+  "Você é meu final feliz 💖",
+  "Amo cada detalhe seu.",
+  "Contigo aprendi o que é amor de verdade.",
+  "Não existe nada melhor do que seu abraço.",
+  "Minha felicidade tem o seu nome.",
+  "Meu coração é todo seu.",
+  "Te amo de um jeito que só você entende."
+];
+
+
+    const messagesContainer = document.getElementById('messages-container');
+
+   function showMessage() {
+  const msg = document.createElement('div');
+  msg.className = 'message-bubble';
+
+  if (Math.random() < 0.5) msg.classList.add('alt');
+
+  msg.textContent = messages[Math.floor(Math.random() * messages.length)];
+
+const margin = 10;
+const maxTop = height - msg.offsetHeight - margin;
+const maxLeft = width - msg.offsetWidth - margin;
+
+msg.style.top = (margin + Math.random() * maxTop) + 'px';
+msg.style.left = (margin + Math.random() * maxLeft) + 'px';
+
+
+  messagesContainer.appendChild(msg);
+
+  let timeoutId;
+  let isDragging = false;
+  let dragOffsetX, dragOffsetY;
+  let startX, startY;
+
+  function startDrag(e) {
+    isDragging = true;
+    clearTimeout(timeoutId);
+
+    const rect = msg.getBoundingClientRect();
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+    dragOffsetX = clientX - rect.left;
+    dragOffsetY = clientY - rect.top;
+
+    startX = clientX;
+    startY = clientY;
+
+    e.preventDefault();
+  }
+
+  function drag(e) {
+    if (!isDragging) return;
+
+    const clientX = e.touches ? e.touches[0].clientX : e.clientX;
+    const clientY = e.touches ? e.touches[0].clientY : e.clientY;
+
+    let newX = clientX - dragOffsetX;
+    let newY = clientY - dragOffsetY;
+
+    newX = Math.min(Math.max(newX, 0), width - msg.offsetWidth);
+    newY = Math.min(Math.max(newY, 0), height - msg.offsetHeight);
+
+    msg.style.left = newX + 'px';
+    msg.style.top = newY + 'px';
+
+    e.preventDefault();
+  }
+
+  function endDrag(e) {
+    if (!isDragging) return;
+    isDragging = false;
+
+    const clientX = e.changedTouches ? e.changedTouches[0].clientX : e.clientX;
+    const clientY = e.changedTouches ? e.changedTouches[0].clientY : e.clientY;
+
+    const movedDistance = Math.hypot(clientX - startX, clientY - startY);
+
+    // Se o movimento foi menor que 5px, considera clique, mantém a mensagem
+    if (movedDistance < 5) {
+      // Apenas reinicia o timer de sumir depois do clique
+      timeoutId = setTimeout(() => {
+        msg.remove();
+      }, 3000);
+    } else {
+      // Se foi drag mesmo, reinicia timer normalmente
+      timeoutId = setTimeout(() => {
+        msg.remove();
+      }, 3000);
+    }
+  }
+
+  // Timer inicial para sumir depois de 3s
+  timeoutId = setTimeout(() => {
+    msg.remove();
+  }, 3000);
+
+  // Eventos só no elemento msg (não window)
+  msg.addEventListener('mousedown', startDrag);
+  msg.addEventListener('mousemove', drag);
+  msg.addEventListener('mouseup', endDrag);
+
+  msg.addEventListener('touchstart', startDrag);
+  msg.addEventListener('touchmove', drag, { passive: false });
+  msg.addEventListener('touchend', endDrag);
+
+  // Clique para manter a mensagem (pausa o sumiço)
+  msg.addEventListener('click', (e) => {
+    e.stopPropagation();
+    clearTimeout(timeoutId);
+  });
+}
+
+    setInterval(showMessage, 1800);
+
+    // --- Rodapé animado com nome ---
+    const footerName = document.createElement('div');
+    footerName.id = 'footer-name';
+    footerName.textContent = 'THICYANE 💖 GABRIEL';
+    document.body.appendChild(footerName);
+  </script>
+</body>
+</html>
